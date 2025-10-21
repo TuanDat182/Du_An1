@@ -1,2 +1,0 @@
-1.Xây dựng form cho phép  nhập vào 2 giá trị mn, tìm tất cả các số nguyên tố có trong đoạn mn và hiển thị lên giao diện.
-2.tạo bảng dữ liệu cho sản phẩm với các trường tự do, trong file csv, thực hiện hiển thị sản phẩm lên danh sách trên giao diện. cho phép thêm, sửa xóa

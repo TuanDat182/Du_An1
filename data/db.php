@@ -1,75 +1,49 @@
 <?php
-// Cấu hình kết nối CSDL
+// Bắt đầu session ở đầu file để có thể sử dụng ở mọi nơi
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Thay đổi các thông tin sau cho phù hợp với cấu hình của bạn
 $host = 'localhost';
-$dbname = 'cua_hang_truc_tuyen';
+$dbname = 'laptop_store';
 $username = 'root';
 $password = '';
+$charset = 'utf8mb4';
+
+// Tạo chuỗi DSN (Data Source Name)
+$dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Kết nối CSDL thất bại: " . $e->getMessage());
+    // Tạo đối tượng PDO để kết nối
+    $pdo = new PDO($dsn, $username, $password, $options);
+} catch (\PDOException $e) {
+    // Nếu kết nối thất bại, hiển thị lỗi và dừng chương trình
+    throw new \PDOException($e->getMessage(), (int)$e->getCode());
 }
 
 /**
- * Thêm bản ghi mới vào bảng
- * @param string $table tên bảng
- * @param array $data ['cot1' => 'giatri1', 'cot2' => 'giatri2']
+ * Hàm đơn giản để lấy tất cả bản ghi từ một bảng.
+ * @param string $tableName Tên của bảng cần lấy dữ liệu.
+ * @return array Mảng chứa tất cả các sản phẩm.
  */
-function insert($table, $data) {
+function select($tableName)
+{
     global $pdo;
-    $columns = implode(", ", array_keys($data));
-    $placeholders = ":" . implode(", :", array_keys($data));
-
-    $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
-    $stmt = $pdo->prepare($sql);
-    return $stmt->execute($data);
-}
-
-/**
- * Lấy dữ liệu
- * @param string $table tên bảng
- * @param string $where điều kiện (tuỳ chọn)
- * @param array $params mảng tham số điều kiện
- */
-function select($table, $where = '', $params = []) {
-    global $pdo;
-    $sql = "SELECT * FROM $table";
-    if ($where) {
-        $sql .= " WHERE $where";
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM " . $tableName);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    } catch (\PDOException $e) {
+        // Xử lý lỗi nếu có
+        error_log("Select failed: " . $e->getMessage());
+        return [];
     }
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-/**
- * Cập nhật bản ghi
- * @param string $table tên bảng
- * @param array $data ['cot' => 'giatri']
- * @param string $where điều kiện
- * @param array $params mảng điều kiện
- */
-function update($table, $data, $where, $params = []) {
-    global $pdo;
-    $setPart = implode(", ", array_map(fn($k) => "$k = :$k", array_keys($data)));
-
-    $sql = "UPDATE $table SET $setPart WHERE $where";
-    $stmt = $pdo->prepare($sql);
-    return $stmt->execute(array_merge($data, $params));
-}
-
-/**
- * Xoá bản ghi
- * @param string $table tên bảng
- * @param string $where điều kiện
- * @param array $params mảng điều kiện
- */
-function delete($table, $where, $params = []) {
-    global $pdo;
-    $sql = "DELETE FROM $table WHERE $where";
-    $stmt = $pdo->prepare($sql);
-    return $stmt->execute($params);
 }
 ?>
