@@ -1,15 +1,6 @@
 <?php
-// Bắt đầu session để có thể sử dụng biến $_SESSION
-session_start();
-
-// Nếu người dùng đã đăng nhập, chuyển hướng họ về trang chủ
-if (isset($_SESSION['user_id'])) {
-    header('Location: index.php');
-    exit();
-}
-
 // Nạp file header
-include 'includes/header.php';
+require_once 'includes/header.php';
 ?>
 
 <!-- SECTION -->
@@ -23,7 +14,20 @@ include 'includes/header.php';
                     <div class="section-title">
                         <h3 class="title">Đăng Nhập</h3>
                     </div>
-                    <!-- Form đăng nhập -->
+
+                    <?php
+                    // Đoạn code hiển thị thông báo lỗi
+                    if (isset($_GET['error'])) {
+                        echo '<div class="alert alert-danger">';
+                        if ($_GET['error'] == 'invalid') {
+                            echo 'Email hoặc mật khẩu không chính xác.';
+                        } elseif ($_GET['error'] == 'empty') {
+                            echo 'Vui lòng nhập đầy đủ thông tin.';
+                        }
+                        echo '</div>';
+                    }
+                    ?>
+
                     <form action="handle_login.php" method="POST">
                         <div class="form-group">
                             <input class="input" type="email" name="email" placeholder="Email" required>
@@ -31,30 +35,10 @@ include 'includes/header.php';
                         <div class="form-group">
                             <input class="input" type="password" name="password" placeholder="Mật khẩu" required>
                         </div>
-                        
-                        <!-- Hiển thị thông báo lỗi hoặc thành công -->
-                        <?php if (isset($_SESSION['login_error'])): ?>
-                            <div class="alert alert-danger">
-                                <?php 
-                                    echo $_SESSION['login_error']; 
-                                    unset($_SESSION['login_error']); // Xóa thông báo sau khi hiển thị
-                                ?>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if (isset($_SESSION['register_success'])): ?>
-                            <div class="alert alert-success">
-                                <?php 
-                                    echo $_SESSION['register_success']; 
-                                    unset($_SESSION['register_success']); // Xóa thông báo sau khi hiển thị
-                                ?>
-                            </div>
-                        <?php endif; ?>
-
                         <button type="submit" class="primary-btn order-submit">Đăng Nhập</button>
                     </form>
-                     <div class="text-center" style="margin-top: 20px;">
-                        <p>Chưa có tài khoản? <a href="register.php">Đăng ký ngay</a></p>
+                    <div style="margin-top: 15px;">
+                        <a href="register.php">Chưa có tài khoản? Đăng ký ngay</a>
                     </div>
                 </div>
             </div>
@@ -67,6 +51,6 @@ include 'includes/header.php';
 
 <?php
 // Nạp file footer
-include 'includes/footer.php';
+require_once 'includes/footer.php';
 ?>
 

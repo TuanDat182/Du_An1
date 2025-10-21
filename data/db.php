@@ -1,49 +1,35 @@
 <?php
-// Bắt đầu session ở đầu file để có thể sử dụng ở mọi nơi
+// Luôn bắt đầu session ở đầu file
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Thay đổi các thông tin sau cho phù hợp với cấu hình của bạn
-$host = 'localhost';
-$dbname = 'laptop_store';
-$username = 'root';
-$password = '';
-$charset = 'utf8mb4';
+// === THAY ĐỔI THÔNG TIN CỦA BẠN VÀO ĐÂY ===
+$servername = "localhost"; // hoặc 127.0.0.1
+$username = "root";       // Tên người dùng CSDL của bạn
+$password = "";           // Mật khẩu CSDL của bạn (của Laragon thường là rỗng)
+$dbname = "laptop_store"; // << TÊN CƠ SỞ DỮ LIỆU CỦA BẠN
 
-// Tạo chuỗi DSN (Data Source Name)
-$dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+// Tạo kết nối
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-
-try {
-    // Tạo đối tượng PDO để kết nối
-    $pdo = new PDO($dsn, $username, $password, $options);
-} catch (\PDOException $e) {
-    // Nếu kết nối thất bại, hiển thị lỗi và dừng chương trình
-    throw new \PDOException($e->getMessage(), (int)$e->getCode());
+// KIỂM TRA KẾT NỐI -> Đây là bước quan trọng nhất để tìm lỗi
+if ($conn->connect_error) {
+    // Nếu có lỗi, dừng chương trình và hiển thị chính xác lỗi là gì
+    die("Kết nối CSDL thất bại: " . $conn->connect_error);
 }
 
-/**
- * Hàm đơn giản để lấy tất cả bản ghi từ một bảng.
- * @param string $tableName Tên của bảng cần lấy dữ liệu.
- * @return array Mảng chứa tất cả các sản phẩm.
- */
-function select($tableName)
-{
-    global $pdo;
-    try {
-        $stmt = $pdo->prepare("SELECT * FROM " . $tableName);
-        $stmt->execute();
-        return $stmt->fetchAll();
-    } catch (\PDOException $e) {
-        // Xử lý lỗi nếu có
-        error_log("Select failed: " . $e->getMessage());
-        return [];
+// (Tùy chọn) Thiết lập charset để hỗ trợ tiếng Việt
+$conn->set_charset("utf8mb4");
+
+// Hàm select bạn đã dùng (giữ lại nếu cần)
+function select($table, $condition = "") {
+    global $conn;
+    $sql = "SELECT * FROM $table $condition";
+    $result = $conn->query($sql);
+    if ($result) {
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
+    return [];
 }
 ?>
